@@ -19,6 +19,12 @@ give all course information below schedule
 
 known that this will break with courses with weird start and end date
 
+fix order of divs / fix copy paste; custom copy paste text output
+
+in description fix links of courses to be actually useful
+
+as standalone scheduler not just this stuff
+
 view whole 24 hours or tightfit or pad by a number of minutes
 
 scale to window or default sizing

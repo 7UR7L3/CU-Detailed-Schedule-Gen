@@ -1,6 +1,8 @@
 var userData = typeof userData  !== "undefined" ? userData
 	: await sam.login().then( v => sam.fetchRecord() ); // collect user data
 
+window.focus()
+
 var currentDB = typeof currentDB !== "undefined" ? currentDB
 	: _lfreq_('fose/client/builtin-panels/search').gatherSearchData().server.other.srcdb;
 
@@ -39,7 +41,7 @@ var courseData = typeof courseData !== "undefined" ? courseData // somewhat pars
 				location: (m=meeting_html).substring( m.indexOf( 'blank">' )+7, m.indexOf( "</a>" ) ),
 				// TODO get meets_short i.e. ECCR 135; parse from meeting_html w/ bldg= and the plaintext?
 				meetstime_short: meets,
-				location_html: (m=meeting_html).substring( m.indexOf( "in " )+3, m.indexOf( "</a>" )+4 ), // these 5 lines must be kept in order
+				location_html: (m=meeting_html).substring( m.indexOf( "in " )+3, m.lastIndexOf( "<" ) ), // these 5 lines must be kept in order
 				meetstime: mt=m.substring( m.indexOf( 'meet">' )+6, m.indexOf( " in" ) ),
 				meetsdays: md=(mts=mt.split( " " ))[0],
 				meetsdaysindexstr: md.split( " " )[0].replace("M",0).replace("Th",3).replace("T",1).replace("W",2).replace("F",4), // to use with "024".includes( 0 ); yes this works. should only need to replace first
@@ -149,12 +151,12 @@ addStylesheetRules(
 [
 	[ 'body', [ 'font-size', '10px' ], [ 'overflow', 'auto' ]/*, [ 'font-family', 'monospace' ]*/ ],
 
-	[ 'table', [ 'margin', '10px' ], [ 'padding', '0px' ], [ 'width', '1200px' ], [ 'position', 'relative' ]/*, [ 'margin-left', 'auto' ], [ 'margin-right', 'auto' ]*/ ],
+	[ 'table', [ 'margin', '10px' ], [ 'padding', '0px' ], [ 'width', '1200px' ], [ 'position', 'relative' ], [ 'left', '-100px' ]/*, [ 'top', '100%' ], [ 'transform', 'translate( 0, -50% )' ]*//*, [ 'margin-left', 'auto' ], [ 'margin-right', 'auto' ]*/ ],
 
 	[ 'th', [ 'width', courseWidthPx + 'px' ] ],
 
 	[ 'div', [ 'position', 'absolute' ] ],
-	[ '.courseBlock', [ 'position', 'absolute' ], /*[ 'display', 'grid' ],*/ [ 'border-radius', '3px' ], [ 'border', 'solid rgba( 0, 0, 0, .1 ) 1px' ] ],
+	[ '.courseBlock', /*[ 'position', 'absolute' ],*/ /*[ 'display', 'grid' ],*/ [ 'border-radius', '3px' ], [ 'border', 'solid rgba( 0, 0, 0, .1 ) 1px' ] ],
 	[ '.courseBlock::before', [ 'background-color', 'blue' ] ],
 
 	[ 'pre', [ 'margin', '0px' ], [ 'padding', '0px' ]],
@@ -170,7 +172,9 @@ addStylesheetRules(
 	[ '.hourTimes::before', [ 'position', 'absolute' ], [ 'width', 150*8-100+'px' ], [ 'content', "''" ], [ 'left', '120px' ], [ 'text-align', 'right' ], [ 'border-top', 'solid 1px rgba( 0, 0, 0, .2 )' ] ],
 
 	[ '.courseBlock', [ 'width', '200px' ], [ 'background-color', 'lightblue' ], [ 'line-height', '1.1' ] ],
-	[ '.courseBlock > div', [ 'position', 'absolute' ] ]
+	[ '.courseBlock > div', [ 'position', 'absolute' ] ],
+
+	[ '.courseDetail', [ 'position', 'relative' ] ]
 ] )
 
 // [ 'font-family', 'tahoma' ], [ 'font-size', '13.5px' ], [ 'font-weight', '100' ], [ 'font-variant', 'all-small-caps' ], [ 'line-height', '.6' ], [ 'color', 'black' ]
@@ -290,16 +294,16 @@ for( var i = 0; i < schCourseInfo.length; i++ )
 	var a;
 
 	a = document.createElement( "div" );
-	a.innerHTML = courseData[ i ].code + "-" + courseData[ i ].section;
+	a.innerHTML = courseData[ i ].code + "-" + courseData[ i ].section + ( courseData[ i ].hours ? ( "(" + courseData[ i ].hours + ")" ) : "(0)" );
 	a.style.top = "2px";
-	a.style.left = "8px";
+	a.style.left = "4px";
 	d.appendChild( a );
 	a.innerHTML  = " " + a.innerHTML + " "; // selection weirdness
 
 	a = document.createElement( "div" );
 	a.innerHTML = courseData[ i ].meetstime;
 	a.style.top = "2px";
-	a.style.right = "8px";
+	a.style.right = "4px";
 	d.appendChild( a );
 	a.innerHTML = " " + a.innerHTML + " ";
 
@@ -361,3 +365,73 @@ for( var i = 0; i < schCourseInfo.length; i++ )
 			d.innerHTML = " " + d.innerHTML + " ";
 		}
 	}
+
+
+
+
+
+var details = document.createElement( "div" );
+
+for( var i = 0; i < courseData.length; i++ )
+{
+	var d = document.createElement( "div" );
+	d.innerHTML = "<b style='float: left; width: 100%'>" + courseData[ i ].code + " - " + courseData[ i ].section + ": " + courseData[ i ].title + " (" + courseData[ i ].class_type + ")</b>";
+	$( d ).addClass( "courseDetail" );
+
+	var ul = document.createElement( "ul" );
+	ul.style.width = "300px"
+	ul.style.float = "left";
+	// ul.style.marginBottom = "0px"
+
+	var b;
+
+	b = document.createElement( "li" );
+	b.innerHTML = "<a href=" + (c=courseData[ i ].books_html).substring( c.indexOf( 'href="' )+6, c.lastIndexOf( '">' ) ) + ">Textbooks</a>";
+	ul.appendChild( b );
+
+	b = document.createElement( "li" );
+	b.innerHTML = "Campus: " + courseData[ i ].campus;
+	ul.appendChild( b );
+
+	b = document.createElement( "li" );
+	b.innerHTML = "Old FCQ Evaluations: " + courseData[ i ].course_oldfcq_html;
+	ul.appendChild( b );
+
+	b = document.createElement( "li" );
+	b.innerHTML = "Class Number: " + courseData[ i ].crn;
+	ul.appendChild( b );
+
+	b = document.createElement( "li" );
+	b.innerHTML = courseData[ i ].daterange_html;
+	ul.appendChild( b );
+
+	b = document.createElement( "li" );
+	b.innerHTML = courseData[ i ].grd;
+	ul.appendChild( b );
+
+	b = document.createElement( "li" );
+	b.innerHTML = "asdf"
+	ul.appendChild( b );
+
+	d.appendChild( ul );
+
+
+	var desc = document.createElement( "div" );
+	desc.innerHTML = courseData[ i ].description_html + "<br><br>" + courseData[ i ].classnotes;
+	desc.style.float = "left";
+	desc.style.position = "relative"
+	desc.style.width = "65%";
+	desc.style.minWidth = "600px"
+	d.appendChild( desc );
+
+	details.appendChild( d );
+	d.innerHTML = " " + d.innerHTML + " ";
+}
+
+details.style.top = height + "px";
+details.style.padding = "50px"
+details.style.fontSize = "14px";
+details.style.position = "relative"
+// d.style.fontFamily = `-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif`;
+document.body.appendChild( details );
+details.innerHTML = " " + details.innerHTML + " ";
