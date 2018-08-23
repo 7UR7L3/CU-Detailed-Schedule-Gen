@@ -30,7 +30,7 @@ var courseData = typeof courseData !== "undefined" ? courseData // somewhat pars
 				section,
 				title,
 				class_type: schd,
-				instr: (i=instructordetail_html).substring( i.indexOf( 'blank">' )+7, i.indexOf( "</a>" ) ),
+				instr: (i=instructordetail_html).substring( i.indexOf( 'blank">' )+7, i.indexOf( "</a>" ) ), // BROKEN; MULTIPLE INSTRS
 				instr_short: instr,
 				instr_oldfcq_html: instructordetail_html,
 				course_oldfcq_html: eval_links,
@@ -42,7 +42,7 @@ var courseData = typeof courseData !== "undefined" ? courseData // somewhat pars
 				location_html: (m=meeting_html).substring( m.indexOf( "in " )+3, m.indexOf( "</a>" )+4 ), // these 5 lines must be kept in order
 				meetstime: mt=m.substring( m.indexOf( 'meet">' )+6, m.indexOf( " in" ) ),
 				meetsdays: md=(mts=mt.split( " " ))[0],
-				meetsdaysindexstr: md.split( " " )[0].replace("M",0).replace("Th",3).replace("T",1).replace("W",2).replace("F",4), // to use with "024".includes( 0 ); yes this works
+				meetsdaysindexstr: md.split( " " )[0].replace("M",0).replace("Th",3).replace("T",1).replace("W",2).replace("F",4), // to use with "024".includes( 0 ); yes this works. should only need to replace first
 				meetsstarttime: (mtss=mts[1].split( "-" ))[0],
 				meetsendtime: mtss[1],
 				
@@ -84,7 +84,7 @@ var courseData = typeof courseData !== "undefined" ? courseData // somewhat pars
 	hours:				"3"
 	hours_text:			"3 Credit Hour Lecture"
 	instmode_html:		"In Person"
-	instr:				"Rafael Frongillo"
+	instr:				"Rafael Frongillo" // BROKEN THERE CAN BE MULTIPLE INSTRUCTORS
 	instr_oldfcq_html:	"<div class="instructor-detail"><a href="https://fcq.colorado.edu/scripts/broker.exe?_PROGRAM=fcqlib.fcqdata.sas&iname=Frongillo,Rafael" target="_blank">Rafael Frongillo</a></div>"
 	instr_short:		"R. Frongillo"
 	isCancelled:		"" //// i don't know what would appear if it is cancelled but probably best to check for this in some form
@@ -169,7 +169,7 @@ addStylesheetRules(
 	[ '.hourTimes', [ 'padding-right', '20px' ], [ 'width', '200px' ] ],
 	[ '.hourTimes::before', [ 'position', 'absolute' ], [ 'width', 150*8-100+'px' ], [ 'content', "''" ], [ 'left', '120px' ], [ 'text-align', 'right' ], [ 'border-top', 'solid 1px rgba( 0, 0, 0, .2 )' ] ],
 
-	[ '.courseBlock', [ 'width', '200px' ], [ 'background-color', 'lightblue' ], [ 'line-height', '.9' ] ],
+	[ '.courseBlock', [ 'width', '200px' ], [ 'background-color', 'lightblue' ], [ 'line-height', '1.1' ] ],
 	[ '.courseBlock > div', [ 'position', 'absolute' ] ]
 ] )
 
@@ -303,10 +303,11 @@ for( var i = 0; i < schCourseInfo.length; i++ )
 	d.appendChild( a );
 	a.innerHTML = " " + a.innerHTML + " ";
 
-	a = document.createElement( "div" ); // course code and instructor
-	a.innerHTML =  courseData[ i ].title + " (" + courseData[ i ].class_type + ")<br>" + courseData[ i ].instr;
+	a = document.createElement( "div" ); // !! MAKE THAT SHIT THE SHIT IN courseData PROBABLY BECAUSE instr_oldfcq_html SUCKS
+	a.innerHTML =  courseData[ i ].title + " (" + courseData[ i ].class_type + ")<br>" + $( "<div/>" ).append( $( courseData[ i ].instr_oldfcq_html ).find( "a" ) ).html().replace( /></g, ">, <" );
 	a.style.width = "100%"
-	a.style.top = 2 + 10 + 3 + "px"
+	a.style.top = "50%";
+	a.style.transform = "translate( 0, -50% )";
 	// a.style.fontSize = "12px"
 	d.appendChild( a );
 	a.innerHTML  = " " + a.innerHTML + " "; // selection weirdness

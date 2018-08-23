@@ -22,6 +22,7 @@ known that this will break with courses with weird start and end date
 view whole 24 hours or tightfit or pad by a number of minutes
 
 scale to window or default sizing
+height and width and font size options. and start and end time / buffer from earliest and latest
 
 
 have an "add other event" where you pass in a meeting time string and the text you want it to display
