@@ -147,7 +147,7 @@ function addStylesheetRules (rules) {
 
 addStylesheetRules(
 [
-	[ 'body', [ 'font-size', '10px' ], [ 'overflow', 'auto' ] ],
+	[ 'body', [ 'font-size', '10px' ], [ 'overflow', 'auto' ]/*, [ 'font-family', 'monospace' ]*/ ],
 
 	[ 'table', [ 'margin', '10px' ], [ 'padding', '0px' ], [ 'width', '1200px' ], [ 'position', 'relative' ]/*, [ 'margin-left', 'auto' ], [ 'margin-right', 'auto' ]*/ ],
 
@@ -163,13 +163,22 @@ addStylesheetRules(
 
 	// [ '.hourTimes', [] ],
 
-	[ '.timeGap', [ 'width', '200px' ], [ 'text-align', 'center' ], [ 'font-style', 'italic' ], [ 'color', 'rgba( 0, 0, 0, .7 )' ] ]
+	[ '.timeGap', [ 'width', '200px' ], [ 'text-align', 'center' ], [ 'font-style', 'italic' ], [ 'color', 'rgba( 0, 0, 0, .7 )' ] ],
+	[ '.timeGap::after', [ 'position', 'absolute' ], [ 'content', '""' ], [ 'left', '140px' ], [ 'text-align', 'right' ], [ 'border', 'dashed 1px rgba( 0, 0, 0, .3 )' ] ],
+
+	[ '.hourTimes', [ 'padding-right', '20px' ], [ 'width', '200px' ] ],
+	[ '.hourTimes::before', [ 'position', 'absolute' ], [ 'width', 150*8-100+'px' ], [ 'content', "''" ], [ 'left', '120px' ], [ 'text-align', 'right' ], [ 'border-top', 'solid 1px rgba( 0, 0, 0, .2 )' ] ],
+
+	[ '.courseBlock', [ 'width', '200px' ], [ 'background-color', 'lightblue' ], [ 'line-height', '.9' ] ],
+	[ '.courseBlock > div', [ 'position', 'absolute' ] ]
 ] )
 
+// [ 'font-family', 'tahoma' ], [ 'font-size', '13.5px' ], [ 'font-weight', '100' ], [ 'font-variant', 'all-small-caps' ], [ 'line-height', '.6' ], [ 'color', 'black' ]
 
 
 
-// !! REMOVE THESE TWO THINGS
+
+// only used for the time gaps
 var UID = {
 	_current: 0,
 	getNew: function(){
@@ -203,14 +212,40 @@ HTMLElement.prototype.pseudoStyle = function(element,prop,value){
 
 var parseTime = d3.time.format( "%-H:%M%p" ).parse;
 var parseTime2 = d3.time.format( "%-H%p" ).parse;
-var midnight = parseTime( "8:00am" );//parseTime( "11:00pm" );
+
+// a, b are both times (parseTime(string)); a before b else 60*24
+var timeBetween = (a, b) => (r=d3.time.minute.range( a, b ).length) == 0 ? 60*24 : r;
 
 //!! go through all class times, take 1 less than the part before the first colon as beginning, take 2 more than the part after the - before the colon, gives domain directly
 
 // dunno what height is so; make this a setting probably
-var height = 1200;
-var y = d3.time.scale.utc().domain( [ midnight, d3.time.day.offset( midnight, 1 ) ] ).range( [ 0, height ] );
+var height = 700;
 
+
+
+
+// gets the floored/ceiled start/end time of class n
+var floorStartTime = n => d3.time.hour.floor( parseTime( courseData[ n ].meetsstarttime ) || parseTime2( courseData[ n ].meetsstarttime ) );
+var ceilEndTime = n => d3.time.hour.ceil( parseTime( courseData[ n ].meetsendtime ) || parseTime2( courseData[ n ].meetsendtime ) );
+
+var earliest = floorStartTime( 0 );
+var latest = ceilEndTime( 0 );
+
+for( var i = 1; i < courseData.length; i++ )
+{
+	if( timeBetween( earliest, ft=floorStartTime( i ) ) == 60*24 ) earliest = ft;
+	if( timeBetween( ct=ceilEndTime( i ), latest ) == 60*24 ) latest = ct;
+}
+
+earliest = d3.time.hour.offset( earliest, -1 );
+latest = d3.time.hour.offset( latest, 1 );
+
+
+//var midnight = parseTime( "8:00am" );//parseTime( "11:00pm" );
+var y = d3.time.scale.utc().domain( [ earliest, latest ] ).range( [ 0, height ] );
+
+
+// REMOVE THESE !!
 var getTimeString = n => ( h=schCourseExtendedDetails[ n ].meeting_html ).substring( h.indexOf( ">" ) + 1, h.indexOf( " in" ) )
 var beginTime = n => parseTime( c=getTimeString( n ).split( " " )[1].split( "-" )[0] ) || parseTime2( c ) // of class n
 var endTime = n => parseTime( c=getTimeString( n ).split( " " )[1].split( "-" )[1] ) || parseTime2( c ) // of class n
@@ -218,41 +253,23 @@ var endTime = n => parseTime( c=getTimeString( n ).split( " " )[1].split( "-" )[
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 // times
 
 var d;
-for( var i = 1; i <= 12; i++ )
+for( var i = 1; ; i++ )
 {
-	d = document.createElement( "div" );
+	var t = d3.time.hour.offset( earliest, i );
 
-	var t = d3.time.hour.offset( midnight, i )
+	d = document.createElement( "div" );
 	d.style.top = y( t ) + "px";
-	d.style.paddingRight = "20px";
-	d.style.width = "200px";
 	d.innerText = d3.time.format( "%I %p" )( t ).toLowerCase()
 	$( d ).addClass( "hourTimes" )
-	d.pseudoStyle( "before", "position", "absolute" )
-	d.pseudoStyle( "before", "width", 150*8-100+"px" )
-	// d.pseudoStyle( "before", "z-index", "1" )
-	d.pseudoStyle( "before", "content", "''" )
-	d.pseudoStyle( "before", "left", "120px" )
-	d.pseudoStyle( "before", "text-align", "right" )
-	d.pseudoStyle( "before", "border-top", "solid 1px rgba( 0, 0, 0, .2 )" )
+
 
 	document.querySelectorAll( "th" )[0].appendChild( d );
 	d.innerHTML = " " + d.innerHTML + " "; // selection weirdness
+
+	if( timeBetween( t, latest ) == 24*60 ) break;
 }
 
 
@@ -272,30 +289,44 @@ for( var i = 0; i < schCourseInfo.length; i++ )
 
 	var a;
 
+	a = document.createElement( "div" );
+	a.innerHTML = courseData[ i ].code + "-" + courseData[ i ].section;
+	a.style.top = "2px";
+	a.style.left = "8px";
+	d.appendChild( a );
+	a.innerHTML  = " " + a.innerHTML + " "; // selection weirdness
+
+	a = document.createElement( "div" );
+	a.innerHTML = courseData[ i ].meetstime;
+	a.style.top = "2px";
+	a.style.right = "8px";
+	d.appendChild( a );
+	a.innerHTML = " " + a.innerHTML + " ";
+
 	a = document.createElement( "div" ); // course code and instructor
-	a.innerHTML = schCourseInfo[ i ].code + " - " + schCourseInfo[ i ].instr;
-	a.style.position = "absolute";
+	a.innerHTML =  courseData[ i ].title + " (" + courseData[ i ].class_type + ")<br>" + courseData[ i ].instr;
+	a.style.width = "100%"
+	a.style.top = 2 + 10 + 3 + "px"
+	// a.style.fontSize = "12px"
 	d.appendChild( a );
 	a.innerHTML  = " " + a.innerHTML + " "; // selection weirdness
 
 	a = document.createElement( "div" ); // meeting time and location
-	a.innerHTML = (s=schCourseExtendedDetails[ i ].meeting_html).substring( s.indexOf( ">" )+1, s.lastIndexOf( "<" ) );
-	a.style.position = "absolute";
-	a.style.bottom = "0px";
-	a.style.textAlign = "left"
+	//a.innerHTML = (s=schCourseExtendedDetails[ i ].meeting_html).substring( s.indexOf( ">" )+1, s.lastIndexOf( "<" ) );
+	a.innerHTML = courseData[ i ].location_html;
+	a.style.bottom = "1px";
+	a.style.width = "100%"
 	d.appendChild( a );
 	a.innerHTML  = " " + a.innerHTML + " "; // selection weirdness
 
 
 	d.style.top = y( beginTime( i ) ) + "px";
-	d.style.width = "200px";
 	d.style.height = ( y( endTime( i ) ) - y( beginTime( i ) ) ) + "px";
-	d.style.backgroundColor = "lightblue";
 	$( d ).addClass( "courseBlock" )
 
 	for( let day of daysToOffsets( getTimeString( i ) ) )
 	{
-		document.querySelectorAll( "th" )[parseInt(day)+1].appendChild( d.cloneNode( true ) ) // which column
+		document.querySelectorAll( "th" )[parseInt(day)+1].appendChild( d.cloneNode( true ) ); // which column
 	}
 }
 
@@ -303,13 +334,9 @@ for( var i = 0; i < schCourseInfo.length; i++ )
 // timebetween spacers
 
 
-// a, b are both 
-var timeBetween = (a, b) => (r=d3.time.minute.range( a, b ).length) == 0 ? 60*24 : r;
-
-var formatMins = m => d3.time.format( "%-Hh%Mm" )( new Date( 2012, 0, 1, 0, m ) )
+var formatMins = m => d3.time.format( "%-Hh%Mm" )( new Date( 2012, 0, 1, 0, m ) );
 
 for( var i = 0; i < schCourseInfo.length; i++ )
-{
 	for( let day of daysToOffsets( getTimeString( i ) ) )
 	{
 		// course i meeting on day day
@@ -317,10 +344,8 @@ for( var i = 0; i < schCourseInfo.length; i++ )
 		var minMins = 60*24;
 
 		for( var j = 0; j < schCourseInfo.length; j++ )
-		{
 			if( i != j && daysToOffsets( getTimeString( j ) ).includes( day ) && (t=timeBetween( endTime( i ), beginTime( j ) )) < minMins )
 				minMins = t;
-		}
 
 		if( minMins != 60*24 ) // a space between course i and course j on day d
 		{
@@ -329,15 +354,9 @@ for( var i = 0; i < schCourseInfo.length; i++ )
 			d.style.top = y( d3.time.minute.offset( endTime( i ), minMins / 2 ) ) - 6 + "px";
 			$( d ).addClass( "timeGap" )
 
-			d.pseudoStyle( "after", "position", "absolute" )
 			d.pseudoStyle( "after", "height", ( y( d3.time.minute.offset( endTime( i ), minMins ) ) - y( endTime( i ) ) - 6 ) + "px" );
-			d.pseudoStyle( "after", "content", "''" )
-			d.pseudoStyle( "after", "left", "140px" )
-			d.pseudoStyle( "after", "text-align", "right" )
-			d.pseudoStyle( "after", "border", "dashed 1px rgba( 0, 0, 0, .3 )" )
 			d.pseudoStyle( "after", "bottom", -( y( d3.time.minute.offset( endTime( i ), minMins / 2 ) ) - y( endTime( i ) ) - 7.3 - 3 ) + "px" ) // this is stupid and will involve changing based on font...
 			document.querySelectorAll( "th" )[parseInt(day) + 1].appendChild( d ) // which column
 			d.innerHTML = " " + d.innerHTML + " ";
 		}
 	}
-}
