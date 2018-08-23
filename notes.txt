@@ -1,0 +1,89 @@
+I played around last night and much of today. I just walked down and turned on my computer.
+
+If you would like to read the journey of discovery, here is a post detailing it.
+
+
+classes.colorado.edu gives us jquery, d3, sam(oauth), and a very friendly api to the database of the courses
+
+
+saving all to svg https://stackoverflow.com/a/50945965
+
+
+
+IDEA: export directly to google calendar or ical
+
+"if you're asian or whatever" switch axis for schedule
+be able to select from dropdown or whatever everything that you can select
+print schedule
+give all course information below schedule
+
+known that this will break with courses with weird start and end date
+
+view whole 24 hours or tightfit or pad by a number of minutes
+
+scale to window or default sizing
+
+
+have an "add other event" where you pass in a meeting time string and the text you want it to display
+
+
+# WHY
+
+MyCUInfo homepage doesn't give you professors' names and doesn't align the courses in a human readable way.
+MyCUInfo scheduler doesn't give you all information unless you click on the class.
+(the old MyCUInfo scheduler (anyone remember that green shit?) gave you almost everything but fucked the time layout (i suppose in favour of compactness but still >.>))
+classes.colorado.edu doesn't give you shit unless you hover over and move your eyes and squint.
+what the fuck cu.
+
+this bookmarklet gives you the weekly schedule you want.
+
+
+different colour per class vs custom colour option
+
+
+gateway into schedule comparer that takes two links and red blue purple overlays them or some shit maybe or interleaved or the google calendar half and half when overlap
+
+put info in border too like start time end time top bottom or time and days at top. maybe
+
+
+
+onclick="loadbooks('2187-3books', 'https://portal.prod.cu.edu/psc/epprod/UCB2/ENTP/s/WEBLIB_CU_SCHED.ISCRIPT1.FieldFormula.IScript_Get_Boulder_Books?&course1=CSCI3434&section1=001&session1=B&term1=2187&course2=CSCI4229&section2=001&session2=B&term2=2187&course3=CSCI4273&section3=001&session3=B&term3=2187&course4=CSCI4308&section4=800&session4=B&term4=2187&course5=CSCI4308&section5=801&session5=B&term5=2187&course6=PHYS3050&section6=001&session6=B&term6=2187&course7=CSCI4253&section7=001&session7=B&term7=2187')"
+
+$.getScript('https://portal.prod.cu.edu/psc/epprod/UCB2/ENTP/s/WEBLIB_CU_D2L.ISCRIPT1.FieldFormula.IScript_LoadLinkJavascript')
+
+
+
+
+https://stackoverflow.com/a/11287084
+
+need a way to get the building code maybe and ig see what other info we can get :3
+
+
+
+_lfreq_( "fose/client/server-api/search" ).executeOn( fose.search.gatherSearchData().server )
+^ gives you everything
+
+_lfreq_('fose/client/builtin-panels/search').gatherSearchData().server.other.srcdb
+^ gives you selected source DB
+
+_lfreq_( "fose/client/server-api/search" ).executeOn( JSON.parse( '{ "other": { "srcdb": "2167" }, "criteria": [] }' ) )
+^ search on a custom database
+
+_lfreq_('fose/client/srcdb').all()
+^ gives you every database they have
+
+sam.fetchRecord()
+^ gives you everything about you
+
+
+await sam.login().then( v => sam.fetchRecord() )
+^ gives you your json record of everything directly
+
+
+document.body.remove()
+^ lol
+
+
+
+_lfreq_('fose/client/server-api/details').fetchFor( "code:CSCI 3434", "crn:17248", "crn:17248", "2187" )
+^ gives you the details view of a given class
