@@ -1,8 +1,3 @@
-I played around last night and much of today. I just walked down and turned on my computer.
-
-If you would like to read the journey of discovery, here is a post detailing it.
-
-
 classes.colorado.edu gives us jquery, d3, sam(oauth), and a very friendly api to the database of the courses
 
 

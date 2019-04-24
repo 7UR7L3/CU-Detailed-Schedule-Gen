@@ -1,3 +1,7 @@
+// broken in firefox and safari at least
+// firefox fix: https://wanago.io/2018/04/16/explaining-async-await-creating-dummy-promises/ differences in implementation
+// print to pdf: chrome dev tools -> three dots -> more tools -> rendering -> emulate css media screen. then print
+
 var userData = typeof userData  !== "undefined" ? userData
 	: await sam.login().then( v => sam.fetchRecord() ); // collect user data
 
@@ -45,8 +49,8 @@ var courseData = typeof courseData !== "undefined" ? courseData // somewhat pars
 				meetstime: mt=m.substring( m.indexOf( 'meet">' )+6, m.indexOf( " in" ) ),
 				meetsdays: md=(mts=mt.split( " " ))[0],
 				meetsdaysindexstr: md.split( " " )[0].replace("M",0).replace("Th",3).replace("T",1).replace("W",2).replace("F",4), // to use with "024".includes( 0 ); yes this works. should only need to replace first
-				meetsstarttime: (mtss=mts[1].split( "-" ))[0],
-				meetsendtime: mtss[1],
+				meetsstarttime: (mtss=(mts[1]||"").split( "-" ))[0], // ||"" for online classes / classes with meeting_html==""
+				meetsendtime: mtss[1]||"",
 				
 				// general details view pertinent info / additional info that seems useful
 				crn,
@@ -116,7 +120,7 @@ document.body.innerHTML =
 </tr>
 </table>
 `;
-var courseWidthPx = 150;
+var courseWidthPx = 230;
 
 function addStylesheetRules (rules) {
   var styleEl = document.createElement('style'),
@@ -151,7 +155,7 @@ addStylesheetRules(
 [
 	[ 'body', [ 'font-size', '10px' ], [ 'overflow', 'auto' ]/*, [ 'font-family', 'monospace' ]*/ ],
 
-	[ 'table', [ 'margin', '10px' ], [ 'padding', '0px' ], [ 'width', '1200px' ], [ 'position', 'relative' ], [ 'left', '-100px' ]/*, [ 'top', '100%' ], [ 'transform', 'translate( 0, -50% )' ]*//*, [ 'margin-left', 'auto' ], [ 'margin-right', 'auto' ]*/ ],
+	[ 'table', [ 'margin', '10px' ], [ 'padding', '0px' ], [ 'width', ( courseWidthPx * 6 ) + 'px' ], [ 'position', 'relative' ], [ 'left', ( -courseWidthPx / 2 ) + 'px' ]/*, [ 'top', '100%' ], [ 'transform', 'translate( 0, -50% )' ]*//*, [ 'margin-left', 'auto' ], [ 'margin-right', 'auto' ]*/ ],
 
 	[ 'th', [ 'width', courseWidthPx + 'px' ] ],
 
@@ -165,16 +169,31 @@ addStylesheetRules(
 
 	// [ '.hourTimes', [] ],
 
-	[ '.timeGap', [ 'width', '200px' ], [ 'text-align', 'center' ], [ 'font-style', 'italic' ], [ 'color', 'rgba( 0, 0, 0, .7 )' ] ],
-	[ '.timeGap::after', [ 'position', 'absolute' ], [ 'content', '""' ], [ 'left', '140px' ], [ 'text-align', 'right' ], [ 'border', 'dashed 1px rgba( 0, 0, 0, .3 )' ] ],
+	[ '.timeGap', [ 'width', courseWidthPx + 'px' ], [ 'text-align', 'center' ], [ 'font-style', 'italic' ], [ 'color', 'rgba( 0, 0, 0, .7 )' ] ],
+	[ '.timeGap::after', [ 'position', 'absolute' ], [ 'content', '""' ], [ 'left', ( courseWidthPx - 60 ) + 'px' ], [ 'text-align', 'right' ], [ 'border', 'dashed 1px rgba( 0, 0, 0, .3 )' ] ],
 
-	[ '.hourTimes', [ 'padding-right', '20px' ], [ 'width', '200px' ] ],
-	[ '.hourTimes::before', [ 'position', 'absolute' ], [ 'width', 150*8-100+'px' ], [ 'content', "''" ], [ 'left', '120px' ], [ 'text-align', 'right' ], [ 'border-top', 'solid 1px rgba( 0, 0, 0, .2 )' ] ],
+	[ '.hourTimes', [ 'padding-right', '20px' ], [ 'width', courseWidthPx + 'px' ] ],
+	[ '.hourTimes::before', [ 'position', 'absolute' ], [ 'width', ( courseWidthPx * 5 + 80 + 40 ) +'px' ], [ 'content', "''" ], [ 'left', ( courseWidthPx - 80 ) + 'px' ], [ 'text-align', 'right' ], [ 'border-top', 'solid 1px rgba( 0, 0, 0, .2 )' ] ],
 
-	[ '.courseBlock', [ 'width', '200px' ], [ 'background-color', 'lightblue' ], [ 'line-height', '1.1' ] ],
+	[ '.courseBlock', [ 'width', courseWidthPx + 'px' ], [ 'background-color', 'lightblue' ], [ 'line-height', '1.1' ] ],
 	[ '.courseBlock > div', [ 'position', 'absolute' ] ],
 
-	[ '.courseDetail', [ 'position', 'relative' ] ]
+	[ '.courseDetail', [ 'position', 'relative' ] ],
+
+	[ '.notimeinfo', [ 'position', 'relative' ], [ 'background-color', '#ccebc5bb' ], [ 'width', courseWidthPx * 18 / 4 + "px" ], [ 'border-radius', '3px' ], [ 'padding', '3px' ], [ 'margin', '3px' ], [ 'border-width', '1px' ], [ 'border-style', 'solid' ], [ 'border-color', 'rgba(0,0,0,.1)' ] ],
+
+	[ '.colGrp0',  [ 'background-color', '#8dd3c7bb' ] ], // http://colorbrewer2.org/#type=qualitative&scheme=Set3&n=12
+	[ '.colGrp1',  [ 'background-color', '#ffffb3bb' ] ],
+	[ '.colGrp2',  [ 'background-color', '#bebadabb' ] ],
+	[ '.colGrp3',  [ 'background-color', '#fb8072bb' ] ],
+	[ '.colGrp4',  [ 'background-color', '#80b1d3bb' ] ],
+	[ '.colGrp5',  [ 'background-color', '#fdb462bb' ] ],
+	[ '.colGrp6',  [ 'background-color', '#b3de69bb' ] ],
+	[ '.colGrp7',  [ 'background-color', '#fccde5bb' ] ],
+	[ '.colGrp8',  [ 'background-color', '#d9d9d9bb' ] ],
+	[ '.colGrp9',  [ 'background-color', '#bc80bdbb' ] ],
+	[ '.colGrp10', [ 'background-color', '#ccebc5bb' ] ],
+	[ '.colGrp11', [ 'background-color', '#ffed6fbb' ] ]
 ] )
 
 // [ 'font-family', 'tahoma' ], [ 'font-size', '13.5px' ], [ 'font-weight', '100' ], [ 'font-variant', 'all-small-caps' ], [ 'line-height', '.6' ], [ 'color', 'black' ]
@@ -237,8 +256,8 @@ var latest = ceilEndTime( 0 );
 
 for( var i = 1; i < courseData.length; i++ )
 {
-	if( timeBetween( earliest, ft=floorStartTime( i ) ) == 60*24 ) earliest = ft;
-	if( timeBetween( ct=ceilEndTime( i ), latest ) == 60*24 ) latest = ct;
+	if( courseData[ i ].meetsstarttime && timeBetween( earliest, ft=floorStartTime( i ) ) == 60*24 ) earliest = ft;
+	if( courseData[ i ].meetsendtime && timeBetween( ct=ceilEndTime( i ), latest ) == 60*24 ) latest = ct;
 }
 
 earliest = d3.time.hour.offset( earliest, -1 );
@@ -325,9 +344,13 @@ for( var i = 0; i < schCourseInfo.length; i++ )
 	a.innerHTML  = " " + a.innerHTML + " "; // selection weirdness
 
 
+	if( !getTimeString( i ) ) continue; // course doesn't have a time, is probably online
+
 	d.style.top = y( beginTime( i ) ) + "px";
 	d.style.height = ( y( endTime( i ) ) - y( beginTime( i ) ) ) + "px";
 	$( d ).addClass( "courseBlock" )
+
+	$( d ).addClass( "colGrp" + i );
 
 	for( let day of daysToOffsets( getTimeString( i ) ) )
 	{
@@ -369,6 +392,40 @@ for( var i = 0; i < schCourseInfo.length; i++ )
 
 
 
+// classes with no times that couldn't be added to the courses
+
+var nontimes = document.createElement( "div" );
+nontimes.innerHTML = "<b>Courses with Unassigned Time:</b>";
+var add = false;
+
+for( var i = 0; i < schCourseInfo.length; i++ )
+	if( !getTimeString( i ) )
+	{
+		add = true;
+
+		var d = document.createElement( "div" );
+		d.innerHTML  = courseData[ i ].code + "-" + courseData[ i ].section + ( courseData[ i ].hours ? ( "(" + courseData[ i ].hours + ")" ) : "(0)" );
+		d.innerHTML += " ● " + courseData[ i ].title + " (" + courseData[ i ].class_type + ") ● " + $( "<div/>" ).append( $( courseData[ i ].instr_oldfcq_html ).find( "a" ) ).html().replace( /></g, ">, <" );
+		d.innerHTML += "<br> ● " + courseData[ i ].campus + " ● " + courseData[ i ].instmode_html + " (" + courseData[ i ].meetstime_short + ")";
+		$( d ).addClass( "notimeinfo" );
+		nontimes.appendChild( d );
+		d.innerHTML = " " + d.innerHTML + " ";
+	}
+
+nontimes.style.top = height + "px";
+nontimes.style.left = courseWidthPx*3/4 + "px";
+nontimes.style.padding = "0px";
+nontimes.style.fontSize = "14px";
+nontimes.style.position = "relative"
+nontimes.style.width = "65%";
+// d.style.fontFamily = `-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif`;
+if( add ) document.body.appendChild( nontimes );
+nontimes.innerHTML = " " + nontimes.innerHTML + " ";
+
+
+
+
+// details at the end
 
 var details = document.createElement( "div" );
 
@@ -393,6 +450,12 @@ for( var i = 0; i < courseData.length; i++ )
 	b.innerHTML = "Campus: " + courseData[ i ].campus;
 	ul.appendChild( b );
 
+	// new fcq link style, idk if names will work since they expect middle names too
+	// https://public.tableau.com/profile/fcq.office#!/vizhome/FCQ/Boulder?Instructor=ABBOTT\, LON&Term=
+	// also see https://onlinehelp.tableau.com/current/pro/desktop/en-us/embed_list.htm
+	// https://public.tableau.com/views/FCQ/Boulder?:showVizHome=no&:tabs=no&:highdpi=false&:customViews=no
+	// https://public.tableau.com/views/FCQ/Boulder?:showVizHome=no&:tabs=no&:customViews=no&Term=&Instructor=ABBOTT%5C,%20LON
+
 	b = document.createElement( "li" );
 	b.innerHTML = "Old FCQ Evaluations: " + courseData[ i ].course_oldfcq_html;
 	ul.appendChild( b );
@@ -410,8 +473,10 @@ for( var i = 0; i < courseData.length; i++ )
 	ul.appendChild( b );
 
 	b = document.createElement( "li" );
-	b.innerHTML = "asdf"
+	b.innerHTML = "Instructor Google Search"
 	ul.appendChild( b );
+
+	// both fcq links, all above information too so time and location too
 
 	d.appendChild( ul );
 
